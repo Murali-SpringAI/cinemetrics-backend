@@ -1,0 +1,54 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: cinemetrics-backend
+  jackson:
+    serialization:
+      indent-output: true
+
+# ── ClickHouse ────────────────────────────────────────
+clickhouse:
+  url: ${CLICKHOUSE_URL:jdbc:ch://localhost:8123/cinemetrics}
+  username: ${CLICKHOUSE_USER:default}
+  password: ${CLICKHOUSE_PASSWORD:}
+  database: ${CLICKHOUSE_DB:cinemetrics}
+  connection-timeout: 10000
+  socket-timeout: 30000
+
+# ── Google Cloud / Gemini ─────────────────────────────
+gemini:
+  project-id: ${GCP_PROJECT_ID:your-gcp-project-id}
+  location: ${GCP_LOCATION:us-central1}
+  model: gemini-2.5-flash
+  max-output-tokens: 2048
+  temperature: 0.2
+
+# ── Data ingestion schedule ───────────────────────────
+ingestion:
+  # OMDB API key — get free at https://www.omdbapi.com/apikey.aspx
+  omdb-api-key: ${OMDB_API_KEY:}
+  # How often to run the ingestion job (cron: every 15 min by default)
+  schedule: ${INGESTION_SCHEDULE:0 */15 * * * *}
+  # Set to true to seed synthetic data on startup (useful for local dev/demo)
+  seed-on-startup: ${SEED_ON_STARTUP:true}
+
+# ── Briefing cache ────────────────────────────────────
+briefing:
+  # Cron for daily briefing generation (6am UTC daily)
+  schedule: ${BRIEFING_SCHEDULE:0 0 6 * * *}
+
+# ── CORS (Node.js frontend) ───────────────────────────
+cors:
+  allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
+
+# ── Actuator ─────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always

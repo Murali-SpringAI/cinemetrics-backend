@@ -3,6 +3,7 @@ package com.cinemetrics.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.cinemetrics.model.StudioBriefing;
+import com.cinemetrics.repository.ClickHouseQueryEngine;
 import com.cinemetrics.service.BriefingService;
 import com.cinemetrics.service.FilmContextService;
 import org.springframework.http.ResponseEntity;
@@ -13,11 +14,14 @@ import java.util.Map;
 @RequestMapping("/api/analytics")
 public class AnalyticsController {
     @org.springframework.beans.factory.annotation.Autowired
-    public AnalyticsController(BriefingService briefingService, FilmContextService filmContextService) {
+    public AnalyticsController(BriefingService briefingService, FilmContextService filmContextService,
+                               ClickHouseQueryEngine queryEngine) {
         this.briefingService = briefingService;
         this.filmContextService = filmContextService;
+        this.queryEngine = queryEngine;
     }
 
+    private final ClickHouseQueryEngine queryEngine;
     private static final Logger log = LoggerFactory.getLogger(AnalyticsController.class);
 
 

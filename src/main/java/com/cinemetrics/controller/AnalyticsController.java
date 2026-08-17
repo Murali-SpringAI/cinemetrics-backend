@@ -7,6 +7,7 @@ import com.cinemetrics.service.BriefingService;
 import com.cinemetrics.service.FilmContextService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/analytics")
@@ -80,5 +81,20 @@ public class AnalyticsController {
         log.info("Manual briefing refresh requested");
         briefingService.generateBriefing();
         return ResponseEntity.ok("{\"status\": \"briefing regenerated\"}");
+    }
+    @GetMapping("/films")
+    public ResponseEntity<?> getFilms() {
+        try {
+            String result = queryEngine.execute(
+                "SELECT film_id, title, genre, budget_usd, release_date, mpaa_rating, director " +
+                "FROM cinemetrics.market_context " +
+                "ORDER BY film_id"
+            );
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("Failed to fetch films: {}", e.getMessage());
+            return ResponseEntity.internalServerError()
+                .body(Map.of("error", e.getMessage()));
+        }
     }
 }

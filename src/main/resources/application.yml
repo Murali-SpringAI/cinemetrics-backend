@@ -22,7 +22,7 @@ gemini:
   project-id: ${GCP_PROJECT_ID:your-gcp-project-id}
   location: ${GCP_LOCATION:us-central1}
   model: gemini-2.5-flash
-  max-output-tokens: 2048
+  max-output-tokens: 8192
   temperature: 0.2
 
 # ── Data ingestion schedule ───────────────────────────
@@ -52,4 +52,3 @@ management:
   endpoint:
     health:
       show-details: always
-# Tue Aug 18 07:24:53 IST 2026

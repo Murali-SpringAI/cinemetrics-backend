@@ -3,20 +3,26 @@ package com.cinemetrics.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.cinemetrics.model.StudioBriefing;
+import com.cinemetrics.repository.ClickHouseQueryEngine;
 import com.cinemetrics.service.BriefingService;
 import com.cinemetrics.service.FilmContextService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("/api/analytics")
 public class AnalyticsController {
     @org.springframework.beans.factory.annotation.Autowired
-    public AnalyticsController(BriefingService briefingService, FilmContextService filmContextService) {
+    public AnalyticsController(BriefingService briefingService, FilmContextService filmContextService,
+                               ClickHouseQueryEngine queryEngine) {
         this.briefingService = briefingService;
         this.filmContextService = filmContextService;
+        this.queryEngine = queryEngine;
     }
 
+    private final ClickHouseQueryEngine queryEngine;
     private static final Logger log = LoggerFactory.getLogger(AnalyticsController.class);
 
 
@@ -80,5 +86,47 @@ public class AnalyticsController {
         log.info("Manual briefing refresh requested");
         briefingService.generateBriefing();
         return ResponseEntity.ok("{\"status\": \"briefing regenerated\"}");
+    }
+    @org.springframework.web.bind.annotation.GetMapping("/chart-data/{filmId}")
+    public ResponseEntity<?> getChartData(@PathVariable String filmId) {
+        try {
+            String boxOfficeJson = queryEngine.execute(
+                "SELECT week_number, SUM(gross_usd) AS gross, AVG(theatre_count) AS theatres " +
+                "FROM cinemetrics.box_office_daily " +
+                "WHERE film_id = '" + filmId + "' " +
+                "GROUP BY week_number ORDER BY week_number LIMIT 13"
+            );
+            String sentimentJson = queryEngine.execute(
+                "SELECT toDate(timestamp) AS day, " +
+                "AVG(sentiment_score) AS sentiment, SUM(mention_count) AS mentions " +
+                "FROM cinemetrics.sentiment_hourly " +
+                "WHERE film_id = '" + filmId + "' " +
+                "GROUP BY day ORDER BY day LIMIT 30"
+            );
+            String streamingJson = queryEngine.execute(
+                "SELECT platform, SUM(views) AS views, AVG(completion_rate) AS completion " +
+                "FROM cinemetrics.streaming_performance " +
+                "WHERE film_id = '" + filmId + "' " +
+                "GROUP BY platform ORDER BY views DESC"
+            );
+            String metaJson = queryEngine.execute(
+                "SELECT film_id, title, genre, budget_usd, release_date " +
+                "FROM cinemetrics.market_context " +
+                "WHERE film_id = '" + filmId + "'"
+            );
+            ObjectMapper mapper = new ObjectMapper();
+            com.fasterxml.jackson.databind.node.ObjectNode result = mapper.createObjectNode();
+            result.set("box_office", mapper.readTree(boxOfficeJson));
+            result.set("sentiment", mapper.readTree(sentimentJson));
+            result.set("streaming", mapper.readTree(streamingJson));
+            result.set("meta", mapper.readTree(metaJson));
+            result.put("film_id", filmId);
+            result.put("source", "clickhouse_live");
+            return ResponseEntity.ok(result.toString());
+        } catch (Exception e) {
+            log.error("Chart data failed for {}: {}", filmId, e.getMessage());
+            return ResponseEntity.internalServerError()
+                .body("{"error": "" + e.getMessage() + ""}");
+        }
     }
 }

@@ -3,25 +3,20 @@ package com.cinemetrics.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.cinemetrics.model.StudioBriefing;
-import com.cinemetrics.repository.ClickHouseQueryEngine;
 import com.cinemetrics.service.BriefingService;
 import com.cinemetrics.service.FilmContextService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/analytics")
 public class AnalyticsController {
     @org.springframework.beans.factory.annotation.Autowired
-    public AnalyticsController(BriefingService briefingService, FilmContextService filmContextService,
-                               ClickHouseQueryEngine queryEngine) {
+    public AnalyticsController(BriefingService briefingService, FilmContextService filmContextService) {
         this.briefingService = briefingService;
         this.filmContextService = filmContextService;
-        this.queryEngine = queryEngine;
     }
 
-    private final ClickHouseQueryEngine queryEngine;
     private static final Logger log = LoggerFactory.getLogger(AnalyticsController.class);
 
 
@@ -85,20 +80,5 @@ public class AnalyticsController {
         log.info("Manual briefing refresh requested");
         briefingService.generateBriefing();
         return ResponseEntity.ok("{\"status\": \"briefing regenerated\"}");
-    }
-    @GetMapping("/films")
-    public ResponseEntity<?> getFilms() {
-        try {
-            String result = queryEngine.execute(
-                "SELECT film_id, title, genre, budget_usd, release_date, mpaa_rating, director " +
-                "FROM cinemetrics.market_context " +
-                "ORDER BY film_id"
-            );
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            log.error("Failed to fetch films: {}", e.getMessage());
-            return ResponseEntity.internalServerError()
-                .body(Map.of("error", e.getMessage()));
-        }
     }
 }

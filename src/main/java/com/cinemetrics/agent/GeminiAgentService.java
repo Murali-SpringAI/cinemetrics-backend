@@ -67,7 +67,23 @@ public class GeminiAgentService {
         long start = System.currentTimeMillis();
         executedQueries.set(new ArrayList<>());
 
-        try (VertexAI vertexAI = new VertexAI(projectId, location)) {
+        // Explicitly set credentials with correct scopes for Cloud Run
+        com.google.auth.oauth2.GoogleCredentials credentials;
+        try {
+            credentials = com.google.auth.oauth2.GoogleCredentials
+                .getApplicationDefault()
+                .createScoped(java.util.List.of(
+                    "https://www.googleapis.com/auth/cloud-platform"
+                ));
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("Failed to get Google credentials: " + e.getMessage(), e);
+        }
+
+        try (VertexAI vertexAI = new VertexAI.Builder()
+                .setProjectId(projectId)
+                .setLocation(location)
+                .setCredentials(credentials)
+                .build()) {
             GenerativeModel model = buildModel(vertexAI);
             ChatSession chat = model.startChat();
 

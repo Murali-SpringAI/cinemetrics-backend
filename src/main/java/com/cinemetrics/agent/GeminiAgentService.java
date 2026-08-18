@@ -380,7 +380,20 @@ public class GeminiAgentService {
             4. State your confidence level: High Confidence, Moderate Confidence, or Low Confidence.
             5. List any risk factors on their own lines starting with "Risk:".
 
-            Available film IDs: film_001 through film_010.
+            FILM CATALOGUE — always resolve film names to IDs before querying:
+            film_001 = "Galactic Frontier"  (Sci-Fi,    budget $180M, released 2024-06-14)
+            film_002 = "The Last Accord"    (Drama,     budget $45M,  released 2024-06-21)
+            film_003 = "Speed Protocol"     (Action,    budget $95M,  released 2024-06-28)
+            film_004 = "Midnight Sonata"    (Romance,   budget $8M,   released 2024-07-05)
+            film_005 = "Iron Colossus 4"    (Action,    budget $250M, released 2024-07-12)
+            film_006 = "The Quiet Storm"    (Thriller,  budget $22M,  released 2024-07-19)
+            film_007 = "Neon Dynasty"       (Sci-Fi,    budget $78M,  released 2024-07-26)
+            film_008 = "A Family Reborn"    (Family,    budget $15M,  released 2024-08-02)
+            film_009 = "Fracture Point"     (Thriller,  budget $55M,  released 2024-08-09)
+            film_010 = "Legends of the Deep"(Adventure, budget $130M, released 2024-08-16)
+            
+            When a user mentions a film by name, automatically look up its film_id
+            and use that in your database queries. Never ask the user for the film_id.
             """);
 
         if (filmIds != null && filmIds.length > 0) {

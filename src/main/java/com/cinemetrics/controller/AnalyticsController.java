@@ -126,7 +126,7 @@ public class AnalyticsController {
         } catch (Exception e) {
             log.error("Chart data failed for {}: {}", filmId, e.getMessage());
             return ResponseEntity.internalServerError()
-                .body("{"error": "" + e.getMessage() + ""}");
+                .body(java.util.Map.of("error", e.getMessage()));
         }
     }
 }

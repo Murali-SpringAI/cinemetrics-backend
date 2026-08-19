@@ -24,7 +24,7 @@ A Gemini agent queries ClickHouse in real time, reasons over box office + sentim
 
 | Layer | Technology |
 |---|---|
-| Agent | Google Gemini 1.5 Pro (Vertex AI) |
+| Agent | Google Gemini 2.5 Flash (Vertex AI) |
 | Analytics DB | ClickHouse Cloud (partner track) |
 | Backend | Java 21 + Spring Boot 3.3 |
 | Hosting | Google Cloud Run (free tier) |

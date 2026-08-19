@@ -89,6 +89,11 @@ public class AnalyticsController {
     }
     @org.springframework.web.bind.annotation.GetMapping("/chart-data/{filmId}")
     public ResponseEntity<?> getChartData(@PathVariable String filmId) {
+        if (!filmId.matches("film_\\d{3}")) {
+            return ResponseEntity.badRequest()
+                .body(java.util.Map.of("error", "Invalid film ID — must be film_001 to film_010"));
+        }
+        log.info("[ANALYTICS] Chart data requested for {}", filmId);
         try {
             String boxOfficeJson = queryEngine.execute(
                 "SELECT week_number, SUM(gross_usd) AS gross, AVG(theatre_count) AS theatres " +
